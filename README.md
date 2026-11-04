@@ -10,6 +10,12 @@ Apps and shared tools for the BMW iDrive 7 head unit (MGU), installed from the M
 The two tools live only here, so the Store never sees the same tool id from two sources. Moonride and RideTube
 require `jap-node22` from this source.
 
+Independent project, not affiliated with or endorsed by BMW, Tailscale Inc. or the OpenJS Foundation. The
+Tailscale package is an unofficial build of Tailscale's open-source client. Use at your own risk.
+
+Tested on one car: BMW X5 xDrive45e (G05), iDrive 7 (MGU, ID7 HMI), firmware P18_23w44.2-1-3. Reports from other
+cars are welcome in the issues.
+
 ## Requirements
 
 - A BMW with iDrive 7 (MGU, `ID7`) and the [MGU Store](https://github.com/robertnisipeanu/mgu-store) installed.
@@ -53,7 +59,6 @@ Known limits:
 - The thresholds are fixed (see above). They were chosen on one car.
 - The graphics clock is shown but never alerted on, because the GPU never idles on this unit.
 
-Tested on a BMW with iDrive 7 (MGU).
 
 ## Tailscale
 
