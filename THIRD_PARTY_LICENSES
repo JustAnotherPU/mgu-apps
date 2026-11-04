@@ -1,0 +1,78 @@
+Third-party licences
+====================
+
+kit/ comes from the idrive7-apps kit
+(github.com/cauliflowermossgrape/idrive7-apps), MIT licence (also in kit/LICENSE):
+
+MIT License
+
+Copyright (c) 2026 cauliflowermossgrape
+Copyright (c) 2026 小白151 (GitHub: JackieZ123430), Chinese translation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+kit/runtime/fonts/{bold,label,light,num,gear}.json are glyph atlases rasterised from the Ubuntu font family,
+Ubuntu Font Licence 1.0: full text in kit/runtime/fonts/UFL-Ubuntu.txt (shipped beside the atlases in every package).
+kit/runtime/fonts/cjk.json is rasterised from Noto Sans SC, SIL Open Font License 1.1: full text in
+kit/runtime/fonts/OFL-NotoSansSC.txt.
+
+tools/jap-node22 packs Node.js v22.23.4 (nodejs.org unofficial-builds linux-x64-glibc-217), downloaded at build
+time and checked by sha256; nothing of it is in this repository. Node.js is MIT-licensed, with its bundled
+dependencies under their own licences: Node's LICENSE file, which lists them all, is installed beside the binary
+(files/LICENSE in the jap-node22 package). tools/jap-node22/set-loader.js is modified from setLoader in the MGU
+Store (github.com/robertnisipeanu/mgu-store, native/mgu-python/build.js, GPL-3.0) and stays GPL-3.0-or-later.
+
+tools/jap-tailscale builds tailscaled from Tailscale v1.104.4 (github.com/tailscale/tailscale, commit
+27047635f237d1f3e0b08c0f487674757f30d2f7), fetched at build time; nothing of it is in this repository. Its
+licence is installed beside the binary (files/LICENSE in the jap-tailscale package). tailscaled and jap-runas are static Go binaries: they
+include the Go runtime (BSD-3-Clause) and Tailscale's Go dependencies (BSD, MIT, Apache-2.0 and MPL-2.0
+licences), listed in go.mod at that commit (github.com/tailscale/tailscale/blob/v1.104.4/go.mod); each
+dependency's licence is in its module. Tailscale's own licence:
+
+BSD 3-Clause License
+
+Copyright (c) 2020 Tailscale Inc & contributors.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The jap-tailscale scripts and jap-runas (tools/jap-tailscale) are Copyright (C) 2026 JustAnotherPU,
+GPL-3.0-or-later: the text is tools/jap-tailscale/COPYING, also installed in the package (files/COPYING).

@@ -1,0 +1,10 @@
+dist/
+oap-sdk
+__pycache__/
+.DS_Store
+build/
+*.tgz
+*.mgu
+*.pem
+*.key
+node_modules/
