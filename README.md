@@ -10,6 +10,20 @@ Apps and shared tools for the BMW iDrive 7 head unit (MGU), installed from the M
 The two tools live only here, so the Store never sees the same tool id from two sources. Moonride and RideTube
 require `jap-node22` from this source.
 
+![iDrive Monitor on a quiet head unit](docs/media/sysmon.png)
+
+*iDrive Monitor on a quiet head unit.*
+
+![iDrive Monitor when the head unit runs short](docs/media/sysmon-short.png)
+
+*When the iDrive runs short: the values over a limit change colour and the last alert stays on the page.*
+
+![iDrive Monitor in the Night Amber theme](docs/media/sysmon-amber.png)
+
+*The Night Amber colour theme.*
+
+(Drawn offline by the head unit's renderer, with demo values.)
+
 Independent project, not affiliated with or endorsed by BMW, Tailscale Inc. or the OpenJS Foundation. The
 Tailscale package is an unofficial build of Tailscale's open-source client. Use at your own risk.
 
