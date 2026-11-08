@@ -13,7 +13,7 @@
 # Without a valid configuration in $D it starts nothing and says why, once, then waits for one.
 set -u
 D=${JAP_WP_CONF_DIR:-/var/opt/jap-wireproxy/conf}     # the overrides are for the tests (test/run.sh)
-R=${JAP_WP_RUN:-/run/jap-wireproxy}
+R=${JAP_WP_RUN:-/run/jap-wireproxy/s}   # setup.sh makes it ours; the RuntimeDirectory above it stays root's
 BIN=${JAP_WP_BIN:-/var/opt/jap-wireproxy/current/wireproxy}
 NODE=${JAP_WP_NODE:-/usr/bin/node}                    # BMW's Node 8: parses status.json, DoH
 ST=${JAP_WP_STATUS:-/run/mgu-uplink/status.json}

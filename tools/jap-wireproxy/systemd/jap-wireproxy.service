@@ -9,7 +9,7 @@ ExecStartPre=/bin/sh /var/opt/jap-wireproxy/current/setup.sh
 # root is dropped to uid 3921 (component.json "uids": the uplink routes it), which has no account
 ExecStart=/var/opt/jap-wireproxy/current/jap-runas 3921 /var/opt/jap-wireproxy/current/start.sh
 RuntimeDirectory=jap-wireproxy
-RuntimeDirectoryMode=0700
+RuntimeDirectoryMode=0755
 Restart=always
 RestartSec=30
 TimeoutStopSec=10
