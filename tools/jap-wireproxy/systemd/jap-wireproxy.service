@@ -15,7 +15,7 @@ RestartSec=30
 TimeoutStopSec=10
 # the hand-installed wireproxy's limits, measured on the car: 22-27 MB with GOGC=30 GOMEMLIMIT=48MiB (start.sh)
 MemoryLimit=96M
-CPUQuota=20%
+CPUQuota=200%
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=full

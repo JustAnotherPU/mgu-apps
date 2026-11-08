@@ -109,7 +109,7 @@ What to know:
 - A wireproxy installed by hand (another unit, e.g. `wireproxy.service` in `/var/opt/wireproxy/`) is left alone.
   Do not run both with the same key (see Configure). Disable the old unit only if it was in recmgr's list at this
   boot.
-- Limits from the unit: `MemoryLimit=96M`, `CPUQuota=20%`; `GOGC=30 GOMEMLIMIT=48MiB` keeps wireproxy at 26 to
+- Limits from the unit: `MemoryLimit=96M`, `CPUQuota=200%` (it costs about 0.8 % of a core per Mbit/s: 20 % would cap it near 25 Mbit/s); `GOGC=30 GOMEMLIMIT=48MiB` keeps wireproxy at 26 to
   29 MB under load (the 5G runs below), against up to 166 MB without (the 05/11 Wi-Fi runs).
 
 ## On the unit
