@@ -58,7 +58,7 @@ Nothing runs until you write a configuration. Until then `systemctl status jap-w
    this when it starts). The folder is `root:3921 0750`: only root and the service read your key.
 
 The service sees the files within a few seconds and starts wireproxy. `systemctl status jap-wireproxy` then shows
-`running: endpoint <address:port> mtu <mtu> tcp-sndbuf <bytes>`, also in `/run/jap-wireproxy/state`.
+`running: endpoint <address:port> mtu <mtu> tcp-sndbuf <bytes>`, also in `/run/jap-wireproxy/s/state`.
 
 | Setting | Default | |
 |---|---|---|
@@ -122,7 +122,7 @@ What to know:
 | `/var/opt/jap-wireproxy/current/resolve.js` | DNS over HTTPS on 1.1.1.1 (Node 8) |
 | `/var/opt/jap-wireproxy/current/jap-runas` | drops root to uid 3921 (from `tools/jap-tailscale/runas`) |
 | `/var/opt/jap-wireproxy/conf/` | your `wireproxy.conf` and `settings`, kept by updates |
-| `/run/jap-wireproxy/` | the generated config and `state`; gone when the service stops |
+| `/run/jap-wireproxy/s/` | the generated config and `state` (uid 3921, 0700); gone when the service stops |
 
 The unit is `jap-wireproxy.service`: `uid` 3921 gets internet from mgu-uplink (`"internet": true`). It has no
 `User=`: it starts as root for `setup.sh` and `jap-runas`, and its `CapabilityBoundingSet` keeps only what those
