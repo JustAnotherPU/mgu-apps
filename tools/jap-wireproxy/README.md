@@ -209,7 +209,9 @@ connects (196 against 153 ms p50). Outside the freezes the stream is the same (g
 against 93 ms p95). On both tunnels the freezes come in bursts of 15 to 25 s where the 5G link slows down; the
 number of freezes is about the same (14 against 15, median), but inside those bursts wireproxy's longest gap is
 longer: 1.7 s and 2.3 s in two of three runs, against 0.9 s at most for Tailscale and 0.44 s for mgu1 on 05/11.
-The cause of the high load and of those longer gaps was not recorded. The download takes 68 to 76 % of one core,
+The iPhone that shared its 5G with the car was also playing short videos (TikTok) during the runs, which explains
+the bursts on both tunnels; it does not show why wireproxy's gaps inside them are longer. The car's high load was
+not explained. The download takes 68 to 76 % of one core,
 well under the 200 % quota, so the quota is not the limit.
 
 ## Build
