@@ -5,8 +5,8 @@ Apps and shared tools for the BMW iDrive 7 head unit (MGU), installed from the M
 - **iDrive Monitor** (`jap_sysmon`): the head unit's CPU, memory and graphics load, with a pop-up when it runs short.
 - **Tailscale** (`jap-tailscale`): your tailnet on the head unit, through a local SOCKS5 proxy. Moonride uses it to
   play over 5G.
-- **WireGuard** (`jap-wireproxy`): a WireGuard client to your own WireGuard server (no account, no relay), through
-  a local SOCKS5 proxy, tuned for the car's 5G uplink.
+- **wireproxy** (`jap-wireproxy`): a client for the WireGuard® protocol to your own server (no account, no relay),
+  through a local SOCKS5 proxy, tuned for the car's 5G uplink.
 - **Node.js 22** (`jap-node22`): the Node runtime that the background services of Moonride and RideTube run on.
 
 The tools live only here, so the Store never sees the same tool id from two sources. Moonride and RideTube
@@ -27,7 +27,7 @@ require `jap-node22` from this source.
 (Drawn offline by the head unit's renderer, with demo values.)
 
 Independent project, not affiliated with or endorsed by BMW, Tailscale Inc., the WireGuard project or the OpenJS
-Foundation. The Tailscale and WireGuard packages are unofficial builds of open-source clients. WireGuard is a
+Foundation. The Tailscale and wireproxy packages are unofficial builds of open-source clients. WireGuard is a
 registered trademark of Jason A. Donenfeld. Use at your own risk.
 
 Tested on one car: BMW X5 xDrive45e (G05), iDrive 7 (MGU, ID7 HMI), firmware P18_23w44.2-1-3. Reports from other
@@ -37,7 +37,7 @@ cars are welcome in the issues.
 
 - A BMW with iDrive 7 (MGU, `ID7`) and the [MGU Store](https://github.com/robertnisipeanu/mgu-store) installed.
 - From the Store's own source: the renderer `mgu-render` 0.6.11 or newer, `mgu-deploy` 0.7.0 (for the tools) and,
-  for Tailscale and WireGuard, `mgu-uplink` with an internet connection. From the Store's default
+  for Tailscale and wireproxy, `mgu-uplink` with an internet connection. From the Store's default
   `cauliflowermossgrape/idrive7-apps` source: the controller gate `mgu-inputgate` (for iDrive Monitor). The Store
   installs requirements first; keep those sources in the Store, or the install stops with a missing requirement.
 
@@ -129,12 +129,12 @@ How the tool works, and how to keep it safe:
 - The tool has its own state, socket, service (`jap-tailscale.service`, uid 3920) and a random WireGuard port, so
   it can run beside another Tailscale tool on the same head unit.
 
-## WireGuard (wireproxy)
+## wireproxy
 
-`jap-wireproxy` runs [wireproxy](https://github.com/whyvl/wireproxy) v1.1.3-mgu1: WireGuard in userspace to a
-WireGuard server you run yourself (a home router, a VPS), with a SOCKS5 proxy on `127.0.0.1` for programs on the
-head unit. Nothing goes through a third party: no account, no coordination server, no relay. It is a choice beside
-Tailscale, not a copy of it: one peer, one key, one UDP port on your server.
+`jap-wireproxy` runs [wireproxy](https://github.com/whyvl/wireproxy) v1.1.3-mgu2, a client for the WireGuard®
+protocol in userspace, to a WireGuard server you run yourself (a home router, a VPS), with a SOCKS5 proxy on
+`127.0.0.1` for programs on the head unit. Nothing goes through a third party: no account, no coordination server,
+no relay. It is a choice beside Tailscale, not a copy of it: one peer, one key, one UDP port on your server.
 
 - Its WireGuard library caps the TCP send buffer of the userspace network stack. Without the cap, an upload on a
   slow 5G uplink froze video streams for 10 to 11 s; with it, the longest gap measured was 0.44 s.
@@ -159,7 +159,7 @@ nothing else: BMW's apps keep the system Node 8. Moonride's service (`jap-moonri
 | `apps/jap_sysmon` | iDrive Monitor (Node 8, the iDrive's own app runtime) |
 | `kit/` | the idrive7-apps app kit, trimmed to what iDrive Monitor uses |
 | `tools/jap-tailscale` | the Tailscale tool: manifest, unit, scripts, `jap-runas`, build script |
-| `tools/jap-wireproxy` | the WireGuard tool: manifest, unit, supervisor, build script, tests |
+| `tools/jap-wireproxy` | the wireproxy tool: manifest, unit, supervisor, build script, tests |
 | `tools/jap-node22` | the Node.js 22 tool: manifest, build script (downloads and checks the pinned build) |
 | `release/` | makes the Store release (`catalog.json` and the artifacts) |
 
@@ -169,7 +169,7 @@ nothing else: BMW's apps keep the system Node 8. Moonride's service (`jap-moonri
 node kit/tools/test_runtime.js && node kit/tools/test_life.js && node kit/tools/test_sysmon.js
 ```
 
-The tests need a current Node (18 or newer). The app itself runs on the head unit's Node 8. The WireGuard tool's
+The tests need a current Node (18 or newer). The app itself runs on the head unit's Node 8. The wireproxy tool's
 supervisor has its own tests (`sh tools/jap-wireproxy/test/run.sh`, any Node; see its README).
 
 A release needs an `oap-sdk` folder extracted from a BMW app you own (`node kit/tools/extract_sdk.js
@@ -200,4 +200,5 @@ MIT, Copyright (c) 2026 JustAnotherPU ([LICENSE](LICENSE)), except:
   ([tools/jap-tailscale/COPYING](tools/jap-tailscale/COPYING)). `jap-wireproxy` ships that `jap-runas` too.
 - The app kit in `kit/` (MIT), Tailscale (BSD-3-Clause), wireproxy (ISC), wireguard-go (MIT) and Node.js (MIT and
   others): see
-  [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES). Each tool package carries the licences of what it ships.
+  [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES). Each tool package carries the licences of what it ships; the
+  wireproxy package has the full texts of its Go modules in `files/LICENSES.txt`.

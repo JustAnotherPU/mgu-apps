@@ -7,8 +7,8 @@
 set -u
 here=$(cd "$(dirname "$0")/.." && pwd)
 T=$(mktemp -d "${TMPDIR:-/tmp}/jap-wp-test.XXXXXX")
-trap 'kill $pid 2>/dev/null; rm -rf "$T"' EXIT
-pass=0 fail=0 pid=
+trap 'kill $pid $occ 2>/dev/null; rm -rf "$T"' EXIT
+pass=0 fail=0 pid= occ=
 
 mkdir -p "$T/bin"
 cat > "$T/bin/wireproxy" <<'EOF'
@@ -159,6 +159,21 @@ HOME_ENDPOINT=192.0.2.1:51820
 idle "HOME_ENDPOINT without HOME_SSID: refused" "HOME_ENDPOINT needs HOME_SSID"
 setup "$CONF" "$SET" "$PHONE"; : > "$F/configtest-fails"; start
 idle "wireproxy's configtest fails: idle, no restart loop" "refused by wireproxy's configtest"
+setup "$CONF# caf$(printf '\303\251')
+" "$SET" "$PHONE"; start
+idle "non-ASCII byte in wireproxy.conf (UTF-8 in a comment): refused" "not printable ASCII"
+setup "$(printf '%s' "$CONF" | awk '{ printf "%s\r\n", $0 }')" "$SET" "$PHONE"; start
+idle "  ...also Windows line ends (CR)" "not printable ASCII"
+
+# a port another program listens on: idle and say so (wireproxy would exit, systemd restart it every 30 s)
+node -e 'const s = require("net").createServer().listen(0, "127.0.0.1", () => require("fs").writeFileSync(process.argv[1], String(s.address().port)));
+    setTimeout(() => {}, 300000);' "$T/port" &
+occ=$!
+until_ '[ -s "$T/port" ]'; port=$(cat "$T/port")
+setup "$(printf '%s' "$CONF" | sed "s/127.0.0.1:1085/127.0.0.1:$port/")" "$SET" "$PHONE"; start
+idle "SOCKS port in use: idle, says so, no exit" "idle: port $port is in use"
+kill $occ; wait $occ 2>/dev/null; occ=
+until_ "ran 0 'BindAddress = 127.0.0.1:$port' 65536" 160 && ok "  ...and starts once the port is free (within 30 s)" || ko "  ...and starts once the port is free"
 
 kill $pid 2>/dev/null; wait $pid 2>/dev/null
 echo "$pass passed, $fail failed"

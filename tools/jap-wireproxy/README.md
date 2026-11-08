@@ -1,13 +1,15 @@
 # jap-wireproxy
 
-A WireGuard client for the iDrive 7 head unit, to **your own WireGuard server** (a home router, a VPS): no account,
-no coordination server, no relay. It runs [wireproxy](https://github.com/whyvl/wireproxy) in userspace (the head
-unit's kernel has no TUN device and loads only signed modules) and gives programs on the head unit a SOCKS5 proxy
-on `127.0.0.1` into your network.
+A client for the WireGuard® protocol for the iDrive 7 head unit, to **your own server** (a home router, a VPS):
+no account, no coordination server, no relay. It runs [wireproxy](https://github.com/whyvl/wireproxy) in userspace
+(the head unit's kernel has no TUN device and loads only signed modules) and gives programs on the head unit a
+SOCKS5 proxy on `127.0.0.1` into your network.
 
-The binary is wireproxy v1.1.3 with one change in its WireGuard library: a cap on the TCP send buffer of the
-userspace network stack (`WG_TCP_SNDBUF`, below). It also picks the endpoint, MTU and that cap from the car's
-uplink: your home Wi-Fi, or a phone or LTE stick elsewhere.
+The binary is wireproxy v1.1.3 with upstream's later fixes (#219 landlock bind rule, #223 connection leaks and UDP
+session races, #224 go-socks5 v0.1.3; not the domain whitelist feature) and wireguard-go at upstream `b3bc704` (with
+its handshake and IPv4 header length fixes) plus one change: a cap on the TCP send buffer of the userspace network
+stack (`WG_TCP_SNDBUF`, below). It also picks the endpoint, MTU and that cap from the car's uplink: your home
+Wi-Fi, or a phone or LTE stick elsewhere.
 
 ## Why the patch
 
@@ -60,7 +62,7 @@ The service sees the files within a few seconds and starts wireproxy. `systemctl
 
 | Setting | Default | |
 |---|---|---|
-| `ENDPOINT` | none | `host:port` of your server, used away from home. A name is resolved by DNS over HTTPS (1.1.1.1), because the head unit's resolver answers nothing; checked again every `RECHECK` s for a dynamic address |
+| `ENDPOINT` | none | `host:port` of your server, used away from home, IPv4 only. A name is resolved by DNS over HTTPS (1.1.1.1), because the head unit's resolver answers nothing; checked again every `RECHECK` s for a dynamic address |
 | `HOME_SSID` | none | your home Wi-Fi's name. Unset: always "away" |
 | `HOME_ENDPOINT` | `ENDPOINT` | `host:port` used on `HOME_SSID`, e.g. the server's LAN address: a router can send replies to its WAN address from another source address, and the head unit's firewall drops them |
 | `HOME_MTU` / `AWAY_MTU` | 1420 / 1280 | 576 to 1500; 1280 fits mobile networks |
@@ -76,12 +78,20 @@ What the service refuses, and says so in its status (it then waits for a correct
   unit itself may use them;
 - `[TCPServerTunnel]`: it would let your network open connections to the head unit's own services;
 - `WGConfig` (an included file), unknown settings, values out of range, `@ENDPOINT@` without `ENDPOINT` or the
-  reverse, and anything wireproxy's own `-n` configuration test rejects.
+  reverse, and anything wireproxy's own `-n` configuration test rejects;
+- a byte in `wireproxy.conf` that is not printable ASCII or a tab (UTF-8 text, also in a comment; Windows line ends).
+
+A `BindAddress` port that another program already listens on is not a refusal: the status says `idle: port <N> is
+in use`, and the service tries again every 30 s instead of letting wireproxy exit and systemd restart it.
 
 What to know:
 
 - Every program on the head unit can use the SOCKS5 proxy. Limit what the car's peer can reach on the server side
   (its `AllowedIPs` and your firewall), not only here.
+- Another userspace Tailscale on the head unit forwards connections from your tailnet to `127.0.0.1:<port>`. Unless
+  it runs shields-up (`jap-tailscale` does), tailnet devices its ACL allows reach this proxy too. Then bind it to
+  `127.0.0.2:1085` (Tailscale forwards to `127.0.0.1` only), or set `Username` and `Password` in `[Socks5]` (the
+  wake-up connection below then cannot log in, so the first handshake after a wake waits for the keepalive).
 - The UDP relay of SOCKS5 `UDP ASSOCIATE` binds the client's local address (go-socks5 v0.1.3); older wireproxy
   builds bound it to every interface.
 - It reads the uplink from mgu-uplink's `/run/mgu-uplink/status.json` and parses it with BMW's own Node 8
@@ -106,7 +116,7 @@ What to know:
 
 | Path | |
 |---|---|
-| `/var/opt/jap-wireproxy/current/wireproxy` | the static binary (`wireproxy -v`: `v1.1.3-mgu1`) |
+| `/var/opt/jap-wireproxy/current/wireproxy` | the static binary (`wireproxy -v`: `v1.1.3-mgu2`) |
 | `/var/opt/jap-wireproxy/current/start.sh` | the supervisor (uid 3921): picks endpoint, MTU, send buffer; restarts wireproxy when they change |
 | `/var/opt/jap-wireproxy/current/setup.sh` | `ExecStartPre` as root: the folders and their owners |
 | `/var/opt/jap-wireproxy/current/resolve.js` | DNS over HTTPS on 1.1.1.1 (Node 8) |
@@ -114,41 +124,44 @@ What to know:
 | `/var/opt/jap-wireproxy/conf/` | your `wireproxy.conf` and `settings`, kept by updates |
 | `/run/jap-wireproxy/` | the generated config and `state`; gone when the service stops |
 
-The unit is `jap-wireproxy.service`: `uid` 3921 gets internet from mgu-uplink (`"internet": true`). It is less
-hardened than a unit with `User=`: it starts as root for `setup.sh` and `jap-runas`, so it keeps the capabilities
-those need.
+The unit is `jap-wireproxy.service`: `uid` 3921 gets internet from mgu-uplink (`"internet": true`). It has no
+`User=`: it starts as root for `setup.sh` and `jap-runas`, and its `CapabilityBoundingSet` keeps only what those
+need (`CAP_CHOWN CAP_FOWNER` for the folders, `CAP_SETUID CAP_SETGID` to drop to 3921); wireproxy itself runs with
+none. Also `SystemCallArchitectures=native` and `RestrictRealtime=yes`.
 
 ## Tests
 
-This package has not yet been installed on a car through the Store. The bench below is the hand-installed
-wireproxy v1.1.3-mgu1, built from the same sources one commit earlier (before go-socks5 v0.1.3), with the same
-supervisor logic.
+This package has not yet been installed on a car through the Store, and v1.1.3-mgu2 has not run on the car. The
+car measurements below are the hand-installed wireproxy v1.1.3-mgu1 (wireguard-go upstream `f333402` with the same
+send buffer cap, wireproxy v1.1.3 without the later fixes) with the same supervisor logic, before the port and
+ASCII checks.
 
 Run on a computer, no car:
 
 ```sh
-sh tools/jap-wireproxy/test/run.sh            # start.sh against fakes: 33 cases
+sh tools/jap-wireproxy/test/run.sh            # start.sh against fakes: 37 cases
 docker run --rm -v "$PWD:/t:ro" -w /t node:8-alpine sh tools/jap-wireproxy/test/run.sh   # the same, BMW's Node 8, busybox
 # the packaged binary end to end (after build.sh): a second wireproxy is the server
 mkdir -p /tmp/x && tar -xzf dist/jap-wireproxy@1.1.3.tgz -C /tmp/x
-docker run --rm -v /tmp/x/files:/x:ro -v "$PWD:/t:ro" node:22-alpine sh /t/tools/jap-wireproxy/test/e2e.sh /x
-# (an amd64 host; on an arm64 Mac the amd64 binary runs under the VM's emulation, as for the results below)
+docker run --rm --platform linux/amd64 -v /tmp/x/files:/x:ro -v "$PWD:/t:ro" node:22-alpine sh /t/tools/jap-wireproxy/test/e2e.sh /x
+# (on an arm64 Mac the amd64 image runs under the VM's emulation, as for the results below)
 ```
 
 Results on 2026-11-08:
 
 | Suite | Result |
 |---|---|
-| `test/run.sh` (macOS sh; busybox with Node 8.17 and Node 22.23) | 33 passed, 0 failed, on each |
-| `test/e2e.sh` (Node 22 arm64 image, the amd64 binary emulated): HTTP through SOCKS5, WireGuard and a server peer; MTU 1280 and `WG_TCP_SNDBUF=65536` applied | 3 passed, 0 failed |
-| wireguard-go `go test ./...` at the pinned commit (including `TestTCPSendBuf` and `TestCreateNetTUNSendBuf`: unset = 128 KiB cap, `0` = gVisor's 1 MiB, a value = that value) | 8 packages ok: 100 tests and subtests passed, 1 skipped, 0 failed |
-| wireproxy `go vet ./... && go test ./...` at the pinned commit | 3 passed, 0 failed |
+| `test/run.sh` (macOS sh; busybox with Node 8.17 and Node 22.23) | 37 passed, 0 failed, on each |
+| `test/e2e.sh` (Node 22 amd64 image, emulated): HTTP through SOCKS5, WireGuard and a server peer; MTU 1280 and `WG_TCP_SNDBUF=65536` applied; the UDP ASSOCIATE relay bound to 127.0.0.1 | 4 passed, 0 failed |
+| wireguard-go `go test ./...` at the pinned commit (including `TestTCPSendBuf` and `TestCreateNetTUNSendBuf`: unset = 128 KiB cap, `0` = gVisor's 1 MiB, a value = that value) | 8 packages ok: 101 tests and subtests passed, 1 skipped, 0 failed |
+| wireproxy `go vet ./... && go test ./...` at the pinned commit | 8 passed, 0 failed |
 
 `test/run.sh` covers home Wi-Fi (`HOME_ENDPOINT`, MTU 1420, 512 KiB, no DNS lookup), the switch to 5G (restart on
 `ENDPOINT` by DoH, MTU 1280, 64 KiB), another Wi-Fi, no `HOME_SSID`, custom MTU and buffer, an address as
 `ENDPOINT`, a new address after `RECHECK`, offline, no mgu-uplink, DoH failing, no configuration (idle, said once,
 then started when the file appears), and every refusal above (`0.0.0.0`, `[::]`, a LAN address, `:port`, a quoted
-address, `bindaddress:` syntax, the HTTP proxy, `[TCPServerTunnel]`, `WGConfig`, bad settings, a failing configtest).
+address, `bindaddress:` syntax, the HTTP proxy, `[TCPServerTunnel]`, `WGConfig`, bad settings, a failing configtest,
+UTF-8 and CR bytes), and a SOCKS port held by another program (idle, then started once it is free).
 
 ### Measured on the car
 
@@ -176,15 +189,20 @@ apart, not an A/B in one session: few runs, one car, one network.
 
 `MGU_STORE=<a clone of the MGU Store> sh tools/jap-wireproxy/build.sh` (Docker). It clones the fork at
 `WP_COMMIT`, checks that its `go.mod` pins the wireguard-go fork commit, and builds static linux/amd64 with
-`-trimpath -ldflags "-s -w -X main.version=v1.1.3-mgu1"`.
+`-trimpath -ldflags "-s -w -X main.version=v1.1.3-mgu2"`. It writes `LICENSES.txt` with
+[go-licenses](https://github.com/google/go-licenses) v1.6.0 (`save`): the licence text of every Go module in the
+binary, then Go's own.
+
+Built on 2026-11-08 (`golang:1.27.3@sha256:2920bb12…`, wireproxy `64c5904`): `wireproxy` is 10891424 bytes, sha256
+`92e476696bd656da010a8741daebcccd679e06093a72d22e76d1b1336c64326b`.
 
 ## Licenses
 
 | Part | License | Source |
 |---|---|---|
-| wireproxy | ISC (`LICENSE.wireproxy` in the package) | upstream [whyvl/wireproxy](https://github.com/whyvl/wireproxy); built from [JustAnotherPU/wireproxy `mgu1`](https://github.com/JustAnotherPU/wireproxy/tree/mgu1) at `2a4b1b2d531f8f53342ddc5d4f63a9f328e25de7` (upstream `31a9a34` + the pinned replace + go-socks5 v0.1.3) |
-| wireguard-go | MIT (`LICENSE.wireguard-go`) | upstream [git.zx2c4.com/wireguard-go](https://git.zx2c4.com/wireguard-go); built from [JustAnotherPU/wireguard-go `mgu-tcp-sndbuf`](https://github.com/JustAnotherPU/wireguard-go/tree/mgu-tcp-sndbuf) at `4c208941dfb3c99924b20834c4f2828f7d309cfb` (upstream `f333402` + the send buffer cap and its tests) |
-| Go dependencies (gVisor Apache-2.0, golang.org/x BSD-3-Clause, go-socks5 MIT, ...) and the Go runtime (BSD-3-Clause) | their own | listed in the fork's `go.mod`; each licence is in its module |
+| wireproxy | ISC (`LICENSE.wireproxy` in the package) | upstream [whyvl/wireproxy](https://github.com/whyvl/wireproxy); built from [JustAnotherPU/wireproxy `mgu2`](https://github.com/JustAnotherPU/wireproxy/tree/mgu2) at `64c5904bc6b918464fd401687ae3c87e7a806e8a` (upstream `31a9a34` + upstream `5925817`, `812c2fb`, `a4c5269` + the pinned replace) |
+| wireguard-go | MIT (`LICENSE.wireguard-go`) | upstream [git.zx2c4.com/wireguard-go](https://git.zx2c4.com/wireguard-go); built from [JustAnotherPU/wireguard-go `mgu-tcp-sndbuf-2`](https://github.com/JustAnotherPU/wireguard-go/tree/mgu-tcp-sndbuf-2) at `2a38e13930f2a8259fc04c9c402b6b76b99ae5a7` (upstream `b3bc704` + the send buffer cap and its tests) |
+| Go dependencies (gVisor and go-ini Apache-2.0, golang.org/x BSD-3-Clause, go-socks5 MIT, libcap/psx BSD-3-Clause, ...) and the Go runtime (BSD-3-Clause) | their own | full texts in `files/LICENSES.txt` of the package (`/var/opt/jap-wireproxy/current/LICENSES.txt`) |
 | `jap-runas` | GPL-3.0-or-later (`COPYING.jap-runas`) | [tools/jap-tailscale/runas](../jap-tailscale/runas) |
 | `start.sh`, `setup.sh`, `resolve.js`, `check.sh`, the unit, the tests | MIT | this folder |
 

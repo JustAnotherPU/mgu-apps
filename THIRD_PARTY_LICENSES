@@ -78,14 +78,15 @@ The jap-tailscale scripts and jap-runas (tools/jap-tailscale) are Copyright (C) 
 GPL-3.0-or-later: the text is tools/jap-tailscale/COPYING, also installed in the package (files/COPYING).
 
 
-tools/jap-wireproxy builds wireproxy v1.1.3-mgu1 from the fork github.com/JustAnotherPU/wireproxy, branch mgu1, commit
-2a4b1b2d531f8f53342ddc5d4f63a9f328e25de7 (upstream github.com/whyvl/wireproxy at 31a9a34 with go.mod changes), and
-wireguard-go from the fork github.com/JustAnotherPU/wireguard-go, branch mgu-tcp-sndbuf, commit
-4c208941dfb3c99924b20834c4f2828f7d309cfb (upstream git.zx2c4.com/wireguard-go at f333402 with the TCP send buffer
-cap), fetched at build time; nothing of them is in this repository. Their licences are installed beside the binary
-(files/LICENSE.wireproxy and files/LICENSE.wireguard-go in the jap-wireproxy package). wireproxy is a static Go
-binary: it includes the Go runtime (BSD-3-Clause) and its Go dependencies (gVisor Apache-2.0, golang.org/x
-BSD-3-Clause, go-socks5 MIT and others), listed in go.mod at that commit; each licence is in its module.
+tools/jap-wireproxy builds wireproxy v1.1.3-mgu2 from the fork github.com/JustAnotherPU/wireproxy, branch mgu2, commit
+64c5904bc6b918464fd401687ae3c87e7a806e8a (upstream github.com/whyvl/wireproxy at 31a9a34 with upstream 5925817,
+812c2fb and a4c5269 and go.mod changes), and wireguard-go from the fork github.com/JustAnotherPU/wireguard-go, branch
+mgu-tcp-sndbuf-2, commit 2a38e13930f2a8259fc04c9c402b6b76b99ae5a7 (upstream git.zx2c4.com/wireguard-go at b3bc704
+with the TCP send buffer cap), fetched at build time; nothing of them is in this repository. Their licences are
+installed beside the binary (files/LICENSE.wireproxy and files/LICENSE.wireguard-go in the jap-wireproxy package).
+wireproxy is a static Go binary: it includes the Go runtime (BSD-3-Clause) and its Go dependencies (gVisor and
+go-ini Apache-2.0, golang.org/x BSD-3-Clause, go-socks5 MIT, libcap/psx BSD-3-Clause and others). The full licence
+text of each of them, and Go's, is in files/LICENSES.txt of the package, made at build time by go-licenses v1.6.0.
 
 wireproxy's licence (ISC):
 

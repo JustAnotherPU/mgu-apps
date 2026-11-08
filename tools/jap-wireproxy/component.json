@@ -2,9 +2,9 @@
   "id": "jap-wireproxy",
   "kind": "tool",
   "version": "1.1.3",
-  "license": "ISC AND MIT AND GPL-3.0-or-later",
-  "title": "WireGuard (wireproxy)",
-  "description": "wireproxy v1.1.3-mgu1: a WireGuard client in userspace to your own WireGuard server (no account, no relay), with SOCKS5 on 127.0.0.1 for programs on the head unit; picks the endpoint, MTU and TCP send buffer from the uplink (home Wi-Fi or mobile); does nothing until you write its configuration; source: https://github.com/JustAnotherPU/mgu-apps",
+  "license": "ISC AND MIT AND Apache-2.0 AND BSD-3-Clause AND GPL-3.0-or-later",
+  "title": "wireproxy",
+  "description": "A client for the WireGuard® protocol to your own server (no account, no relay): wireproxy v1.1.3-mgu2 in userspace, with SOCKS5 on 127.0.0.1 for programs on the head unit; picks the endpoint, MTU and TCP send buffer from the uplink (home Wi-Fi or mobile); does nothing until you write its configuration; source: https://github.com/JustAnotherPU/mgu-apps",
   "requires": {
     "mgu-deploy": "0.7.0"
   },
@@ -35,6 +35,11 @@
     {
       "path": "LICENSE.wireguard-go",
       "from": "build/LICENSE.wireguard-go",
+      "mode": "0644"
+    },
+    {
+      "path": "LICENSES.txt",
+      "from": "build/LICENSES.txt",
       "mode": "0644"
     },
     {
