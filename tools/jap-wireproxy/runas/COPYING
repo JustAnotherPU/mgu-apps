@@ -1,5 +1,5 @@
-jap-tailscale (run.sh, setup.sh, jap-ts, check.sh, the unit and jap-runas): Copyright (C) 2026 JustAnotherPU,
-GPL-3.0-or-later. Source: https://github.com/JustAnotherPU/mgu-apps (tools/jap-tailscale).
+jap-runas: Copyright (C) 2026 JustAnotherPU, GPL-3.0-or-later.
+Source: https://github.com/JustAnotherPU/mgu-apps (tools/jap-wireproxy/runas).
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

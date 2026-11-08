@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 JustAnotherPU
 # Builds dist/jap-wireproxy@<version>.tgz: wireproxy v1.1.3-mgu2 from the pinned commit of its fork (wireguard-go
-# with the TCP send buffer cap, pinned in its go.mod/go.sum), static linux/amd64, jap-runas (../jap-tailscale/runas)
+# with the TCP send buffer cap, pinned in its go.mod/go.sum), static linux/amd64, jap-runas (runas/)
 # and LICENSES.txt (the licence texts of the Go modules in the binary, and Go's own), in a golang container (Docker;
 # on a Mac run it in colima, TMPDIR outside /var/folders), then packs them
 # with the MGU Store's packer ($MGU_STORE: a checkout of https://github.com/robertnisipeanu/mgu-store).
@@ -17,7 +17,7 @@ mkdir -p "$here/build"
 docker run --rm -v "$here/..:/w" -e WP_REPO="$WP_REPO" -e WP_COMMIT="$WP_COMMIT" -e WG_MOD="$WG_MOD" \
     -e GOTOOLCHAIN=local -e GOFLAGS=-buildvcs=false -e CGO_ENABLED=0 -e GOOS=linux -e GOARCH=amd64 "$GO_IMAGE" sh -euc '
     b=/w/jap-wireproxy/build
-    cd /w/jap-tailscale/runas && go build -trimpath -ldflags "-s -w" -o $b/jap-runas . && cp ../COPYING $b/COPYING.jap-runas
+    cd /w/jap-wireproxy/runas && go build -trimpath -ldflags "-s -w" -o $b/jap-runas . && cp COPYING $b/COPYING.jap-runas
     rm -rf /tmp/wp && git clone -q "$WP_REPO" /tmp/wp && cd /tmp/wp && git checkout -q "$WP_COMMIT"
     grep -q "=> ${WG_MOD%@*} ${WG_MOD#*@}$" go.mod || { echo "go.mod does not pin $WG_MOD" >&2; exit 1; }
     go build -trimpath -ldflags "-s -w -X main.version=v1.1.3-mgu2" -o $b/wireproxy ./cmd/wireproxy

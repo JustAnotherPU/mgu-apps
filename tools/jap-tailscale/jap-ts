@@ -1,6 +1,0 @@
-#!/bin/sh
-# SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2026 JustAnotherPU
-# The tailscale CLI on this tool's daemon, for a root shell on the head unit (SSH): jap-ts status, jap-ts logout,
-# jap-ts up --auth-key=file:/path/to/key --hostname=idrive --accept-routes --accept-dns=false --shields-up
-TS_BE_CLI=1 exec /var/opt/jap-tailscale/current/tailscaled --socket=/run/jap-tailscale/sock/tailscaled.sock "$@"
