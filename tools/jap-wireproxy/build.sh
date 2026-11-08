@@ -22,7 +22,7 @@ docker run --rm -v "$here/..:/w" -e WP_REPO="$WP_REPO" -e WP_COMMIT="$WP_COMMIT"
     grep -q "=> ${WG_MOD%@*} ${WG_MOD#*@}$" go.mod || { echo "go.mod does not pin $WG_MOD" >&2; exit 1; }
     go build -trimpath -ldflags "-s -w -X main.version=v1.1.3-mgu2" -o $b/wireproxy ./cmd/wireproxy
     cp LICENSE $b/LICENSE.wireproxy
-    cp "$(go mod download -json "$WG_MOD" | sed -n "s/.*\"Dir\": \"\(.*\)\".*/\1/p")/LICENSE" $b/LICENSE.wireguard-go
+    install -m 644 "$(go mod download -json "$WG_MOD" | sed -n "s/.*\"Dir\": \"\(.*\)\".*/\1/p")/LICENSE" $b/LICENSE.wireguard-go   # module cache files are 0444
     GOOS= GOARCH= go install github.com/google/go-licenses@v1.6.0
     rm -rf /tmp/lic && /go/bin/go-licenses save ./cmd/wireproxy --save_path=/tmp/lic 2>/dev/null
     { echo "Licences of the Go modules built into wireproxy (go-licenses v1.6.0 save, wireproxy $WP_COMMIT), then Go'"'"'s."
