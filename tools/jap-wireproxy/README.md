@@ -1,7 +1,7 @@
 # jap-wireproxy
 
 A client for the WireGuard® protocol for the iDrive 7 head unit, to **your own server** (a home router, a VPS):
-no account, no coordination server, no relay. It runs [wireproxy](https://github.com/whyvl/wireproxy) in userspace
+no account, no coordination server, no relay: your traffic goes from the car to your server and nowhere else. It runs [wireproxy](https://github.com/whyvl/wireproxy) in userspace
 (the head unit's kernel has no TUN device and loads only signed modules) and gives programs on the head unit a
 SOCKS5 proxy on `127.0.0.1` into your network.
 
@@ -45,7 +45,7 @@ Nothing runs until you write a configuration. Until then `systemctl status jap-w
    BindAddress = 127.0.0.1:1065
    ```
 
-   RideWatch looks for this proxy on `127.0.0.1:1065` by default. IterioDev's Tailscale uses `127.0.0.2:1055`.
+   RideWatch and Moonride look for this proxy on `127.0.0.1:1065` by default.
    If another program already listens on 1065, pick a free port.
 3. Write `/var/opt/jap-wireproxy/conf/settings`, one `KEY=VALUE` per line:
 
