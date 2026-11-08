@@ -3,8 +3,9 @@
 Apps and shared tools for the BMW iDrive 7 head unit (MGU), installed from the MGU Store:
 
 - **iDrive Monitor** (`jap_sysmon`): the head unit's CPU, memory and graphics load, with a pop-up when it runs short.
-- **wireproxy** (`jap-wireproxy`): a client for the WireGuard® protocol to your own server (no account, no relay),
-  through a local SOCKS5 proxy, tuned for the car's 5G uplink.
+- **wireproxy** (`jap-wireproxy`): the car's tunnel home. A client for the WireGuard® protocol to your own server,
+  through a local SOCKS5 proxy, tuned for the car's 5G uplink. Your traffic goes from the car to your server and
+  nowhere else.
 - **Node.js 22** (`jap-node22`): the Node runtime that the background services of Moonride and RideTube run on.
 
 The tools live only here, so the Store never sees the same tool id from two sources. Moonride and RideTube
@@ -75,18 +76,31 @@ Known limits:
 - The graphics clock is shown but never alerted on, because the GPU never idles on this unit.
 
 
-## Tailscale
-
-This repository has no Tailscale tool any more. For Tailscale on the head unit, use IterioDev's Tailscale tool
-(`iteriodev-tailscale`, from [IterioDev/car-apps](https://github.com/IterioDev/car-apps)). It has an optional SOCKS5
-server for programs on the head unit.
-
 ## wireproxy
 
 `jap-wireproxy` runs [wireproxy](https://github.com/whyvl/wireproxy) v1.1.3-mgu2, a client for the WireGuard®
 protocol in userspace, to a WireGuard server you run yourself (a home router, a VPS), with a SOCKS5 proxy on
-`127.0.0.1` for programs on the head unit. Nothing goes through a third party: no account, no coordination server,
-no relay. It is a choice beside IterioDev's Tailscale: one peer, one key, one UDP port on your server.
+`127.0.0.1` for programs on the head unit. RideWatch and Moonride use it to reach your cameras and your PC from the
+road.
+
+Why use it rather than a hosted mesh VPN such as Tailscale:
+
+- **Private.** The car talks to your server only. There is no account, no company coordination server that learns
+  your devices, their addresses and when they connect, and no company relay. In one 5G session of the bench,
+  Tailscale went through its relay in Amsterdam in 2 of 3 runs. That traffic is end-to-end encrypted, but it still
+  passes through a server you don't run. With wireproxy, one peer, one key and one UDP port on your server
+  are the whole setup.
+- **Faster down.** Measured on the car against Tailscale 1.104.4: 140 against 94 Mbit/s on the home Wi-Fi, 47 to
+  50 against 20 to 22 Mbit/s on 5G, and 1.6 to 3.2 times faster in the last 5G session.
+- **Smoother video.** In that last session, after a first round on a weak link, a 60 s camera stream froze once
+  per run through wireproxy (0.34 to 0.52 s, 30 frames per second) and 14 and 26 times through Tailscale (up to
+  0.86 s, 21.5 and 27.8 frames per second).
+- **Lighter.** 23 to 29 MB of memory, against 28 to 35 MB for Tailscale.
+
+What it costs: Tailscale's upload was faster in most 5G runs (for example 6.7 against 3.7 Mbit/s); in a session
+where the phone sharing its 5G was busy playing videos, wireproxy's longest freezes were longer; and wireproxy needs
+a WireGuard server you can reach from the internet. Full numbers and conditions: the bench in the
+[tool's README](tools/jap-wireproxy/README.md#measured-on-the-car).
 
 - Its WireGuard library caps the TCP send buffer of the userspace network stack. Without the cap, an upload on a
   slow 5G uplink froze video streams for 10 to 11 s; with it, the longest gap measured was 0.44 s.
