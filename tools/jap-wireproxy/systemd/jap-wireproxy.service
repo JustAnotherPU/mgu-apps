@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=jap-wireproxy: WireGuard in userspace to your own server, SOCKS5 on 127.0.0.1 for the head unit's programs
+After=network.target mgu-uplink.service
+RequiresMountsFor=/var/opt
+
+[Service]
+ExecStartPre=/bin/sh /var/opt/jap-wireproxy/current/setup.sh
+# root is dropped to uid 3921 (component.json "uids": the uplink routes it), which has no account
+ExecStart=/var/opt/jap-wireproxy/current/jap-runas 3921 /var/opt/jap-wireproxy/current/start.sh
+RuntimeDirectory=jap-wireproxy
+RuntimeDirectoryMode=0700
+Restart=always
+RestartSec=30
+TimeoutStopSec=10
+# the hand-installed wireproxy's limits, measured on the car: 22-27 MB with GOGC=30 GOMEMLIMIT=48MiB (start.sh)
+MemoryLimit=96M
+CPUQuota=20%
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+# AF_NETLINK: wireguard-go reads routes for its UDP bind
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+RestrictNamespaces=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target
