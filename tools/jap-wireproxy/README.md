@@ -131,10 +131,23 @@ none. Also `SystemCallArchitectures=native` and `RestrictRealtime=yes`.
 
 ## Tests
 
-This package has not yet been installed on a car through the Store, and v1.1.3-mgu2 has not run on the car. The
-car measurements below are the hand-installed wireproxy v1.1.3-mgu1 (wireguard-go upstream `f333402` with the same
-send buffer cap, wireproxy v1.1.3 without the later fixes) with the same supervisor logic, before the port and
-ASCII checks.
+On the car (BMW X5 G05, iDrive 7, systemd 237), 2026-11-08: this package installed with the head unit's installer
+(`mgu-deploy.sh install --artifact`, as the Store does), then a head-unit restart:
+
+- The unit started at that boot with every directive of the unit file: no `Unknown lvalue`, seccomp or namespace
+  error, `NRestarts=0`, in recmgr's list, 11 MB.
+- The first install sat idle: systemd 237 hands the `RuntimeDirectory` back to the unit's user (root) each time it
+  starts a command, so after `setup.sh` had given it to uid 3921. Since then the files are in
+  `/run/jap-wireproxy/s/`; the fixed `setup.sh`, `start.sh` and unit were put on the car and the service restarted.
+- Then, uplink a phone (5G): `running: endpoint <WAN address>:51821 mtu 1280 tcp-sndbuf 65536`; as `nobody`, a SOCKS5
+  CONNECT to a host on the home LAN through the tunnel (reply 0, bound to the car's tunnel address), and a SOCKS5
+  UDP ASSOCIATE replied with `BND.ADDR 127.0.0.1`; the three `[UDPProxyTunnel]` listen on 127.0.0.1 only.
+- Not yet checked on the car: the home Wi-Fi path (`HOME_ENDPOINT`, uid 3921 on the car's Wi-Fi), and a drive on 5G
+  with v1.1.3-mgu2.
+
+The car measurements further down are the hand-installed wireproxy v1.1.3-mgu1 (wireguard-go upstream `f333402` with
+the same send buffer cap, wireproxy v1.1.3 without the later fixes) with the same supervisor logic, before the port
+and ASCII checks.
 
 Run on a computer, no car:
 
