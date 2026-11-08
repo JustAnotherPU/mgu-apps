@@ -38,46 +38,6 @@ dependencies under their own licences: Node's LICENSE file, which lists them all
 (files/LICENSE in the jap-node22 package). tools/jap-node22/set-loader.js is modified from setLoader in the MGU
 Store (github.com/robertnisipeanu/mgu-store, native/mgu-python/build.js, GPL-3.0) and stays GPL-3.0-or-later.
 
-tools/jap-tailscale builds tailscaled from Tailscale v1.104.4 (github.com/tailscale/tailscale, commit
-27047635f237d1f3e0b08c0f487674757f30d2f7), fetched at build time; nothing of it is in this repository. Its
-licence is installed beside the binary (files/LICENSE in the jap-tailscale package). tailscaled and jap-runas are static Go binaries: they
-include the Go runtime (BSD-3-Clause) and Tailscale's Go dependencies (BSD, MIT, Apache-2.0 and MPL-2.0
-licences), listed in go.mod at that commit (github.com/tailscale/tailscale/blob/v1.104.4/go.mod); each
-dependency's licence is in its module. Tailscale's own licence:
-
-BSD 3-Clause License
-
-Copyright (c) 2020 Tailscale Inc & contributors.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-The jap-tailscale scripts and jap-runas (tools/jap-tailscale) are Copyright (C) 2026 JustAnotherPU,
-GPL-3.0-or-later: the text is tools/jap-tailscale/COPYING, also installed in the package (files/COPYING).
-
-
 tools/jap-wireproxy builds wireproxy v1.1.3-mgu2 from the fork github.com/JustAnotherPU/wireproxy, branch mgu2, commit
 64c5904bc6b918464fd401687ae3c87e7a806e8a (upstream github.com/whyvl/wireproxy at 31a9a34 with upstream 5925817,
 812c2fb and a4c5269 and go.mod changes), and wireguard-go from the fork github.com/JustAnotherPU/wireguard-go, branch
@@ -124,5 +84,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-The jap-wireproxy package also ships that jap-runas (built from tools/jap-tailscale/runas, GPL-3.0-or-later,
-files/COPYING.jap-runas). Its scripts, unit and tests (tools/jap-wireproxy) are MIT, as this repository.
+The jap-wireproxy package also ships jap-runas (tools/jap-wireproxy/runas), Copyright (C) 2026 JustAnotherPU,
+GPL-3.0-or-later: the text is tools/jap-wireproxy/runas/COPYING, also in the package (files/COPYING.jap-runas).
+jap-runas is a static Go binary: it includes the Go runtime (BSD-3-Clause, in files/LICENSES.txt). The package's
+scripts, unit and tests (tools/jap-wireproxy, except runas/) are MIT, as this repository.

@@ -4,8 +4,7 @@
 # Puts the Store release in dist/release/: the app package WITHOUT BMW's oap-sdk (the head unit generates that
 # module from a stock app), the tool artifacts, the app icon and catalog.json. Upload every file of that
 # folder to the GitHub release named "catalog" (README.md, "Releasing"). Build first:
-#   python3 kit/tools/build.py jap_sysmon && sh tools/jap-node22/build.sh && sh tools/jap-tailscale/build.sh &&
-#   sh tools/jap-wireproxy/build.sh
+#   python3 kit/tools/build.py jap_sysmon && sh tools/jap-node22/build.sh && sh tools/jap-wireproxy/build.sh
 set -eu
 root=$(cd "$(dirname "$0")/.." && pwd)
 out=$root/dist/release
@@ -33,7 +32,7 @@ PY
 if tar -tzf "$out/$(basename "$app")" | grep -qi 'oap-sdk'; then echo "release.sh: the oap-sdk is still in the package" >&2; exit 1; fi
 # the local build's packages hold BMW's oap-sdk: only dist/release/ is ever uploaded, so they go
 rm -f "$app" "${app%.tgz}.mgu"
-for t in jap-node22 jap-tailscale jap-wireproxy; do cp "$(one "$root/dist/$t@*.tgz")" "$out/"; done
+for t in jap-node22 jap-wireproxy; do cp "$(one "$root/dist/$t@*.tgz")" "$out/"; done
 cp "$root/apps/jap_sysmon/icon.png" "$out/jap_sysmon.png"
 node "$root/release/catalog.js" "$out" "$base"
 ls -la "$out"

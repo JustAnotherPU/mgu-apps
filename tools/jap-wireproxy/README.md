@@ -42,10 +42,11 @@ Nothing runs until you write a configuration. Until then `systemctl status jap-w
    PersistentKeepalive = 25
 
    [Socks5]
-   BindAddress = 127.0.0.1:1085
+   BindAddress = 127.0.0.1:1065
    ```
 
-   Pick a free port: `jap-tailscale` uses 1065.
+   RideWatch looks for this proxy on `127.0.0.1:1065` by default. IterioDev's Tailscale uses `127.0.0.2:1055`.
+   If another program already listens on 1065, pick a free port.
 3. Write `/var/opt/jap-wireproxy/conf/settings`, one `KEY=VALUE` per line:
 
    ```
@@ -88,9 +89,9 @@ What to know:
 
 - Every program on the head unit can use the SOCKS5 proxy. Limit what the car's peer can reach on the server side
   (its `AllowedIPs` and your firewall), not only here.
-- Another userspace Tailscale on the head unit forwards connections from your tailnet to `127.0.0.1:<port>`. Unless
-  it runs shields-up (`jap-tailscale` does), tailnet devices its ACL allows reach this proxy too. Then bind it to
-  `127.0.0.2:1085` (Tailscale forwards to `127.0.0.1` only), or set `Username` and `Password` in `[Socks5]` (the
+- A userspace Tailscale on the head unit (IterioDev's, for example) forwards connections from your tailnet to
+  `127.0.0.1:<port>`. Unless it runs shields-up, tailnet devices its ACL allows reach this proxy too. Then bind it to
+  `127.0.0.2:<port>` (Tailscale forwards to `127.0.0.1` only), or set `Username` and `Password` in `[Socks5]` (the
   wake-up connection below then cannot log in, so the first handshake after a wake waits for the keepalive).
 - The UDP relay of SOCKS5 `UDP ASSOCIATE` binds the client's local address (go-socks5 v0.1.3); older wireproxy
   builds bound it to every interface.
@@ -120,7 +121,7 @@ What to know:
 | `/var/opt/jap-wireproxy/current/start.sh` | the supervisor (uid 3921): picks endpoint, MTU, send buffer; restarts wireproxy when they change |
 | `/var/opt/jap-wireproxy/current/setup.sh` | `ExecStartPre` as root: the folders and their owners |
 | `/var/opt/jap-wireproxy/current/resolve.js` | DNS over HTTPS on 1.1.1.1 (Node 8) |
-| `/var/opt/jap-wireproxy/current/jap-runas` | drops root to uid 3921 (from `tools/jap-tailscale/runas`) |
+| `/var/opt/jap-wireproxy/current/jap-runas` | drops root to uid 3921 (from `tools/jap-wireproxy/runas`) |
 | `/var/opt/jap-wireproxy/conf/` | your `wireproxy.conf` and `settings`, kept by updates |
 | `/run/jap-wireproxy/s/` | the generated config and `state` (uid 3921, 0700); gone when the service stops |
 
@@ -178,9 +179,10 @@ UTF-8 and CR bytes), and a SOCKS port held by another program (idle, then starte
 
 ### Measured on the car
 
-BMW X5 G05, iDrive 7, camera streams from a home server through each tunnel (SOCKS5), against Tailscale
-(another Store tool, userspace, SOCKS5). A run is 20 connects, 50 round trips, 50 MB down, 20 MB up, then a 60 s
-1920x720 stream (freezes = gaps between frames over 300 ms). Medians unless stated; numbers from the bench's
+BMW X5 G05, iDrive 7, camera streams from a home server through each tunnel (SOCKS5), against Tailscale 1.104.4
+(userspace networking, SOCKS5), built from upstream for this repository at the time. These rows were not measured
+with IterioDev's Tailscale. A run is 20 connects, 50 round trips, 50 MB down, 20 MB up, then a 60 s 1920x720 stream
+(freezes = gaps between frames over 300 ms). Medians unless stated; numbers from the bench's
 `results.jsonl` and `weaklink.jsonl`.
 
 | Where (date, runs per tunnel) | | down Mbit/s | up Mbit/s | longest freeze | freezes > 300 ms | RSS MB |
@@ -248,7 +250,7 @@ Built on 2026-11-08 (`golang:1.27.3@sha256:2920bb12…`, wireproxy `64c5904`): `
 | wireproxy | ISC (`LICENSE.wireproxy` in the package) | upstream [whyvl/wireproxy](https://github.com/whyvl/wireproxy); built from [JustAnotherPU/wireproxy `mgu2`](https://github.com/JustAnotherPU/wireproxy/tree/mgu2) at `64c5904bc6b918464fd401687ae3c87e7a806e8a` (upstream `31a9a34` + upstream `5925817`, `812c2fb`, `a4c5269` + the pinned replace) |
 | wireguard-go | MIT (`LICENSE.wireguard-go`) | upstream [git.zx2c4.com/wireguard-go](https://git.zx2c4.com/wireguard-go); built from [JustAnotherPU/wireguard-go `mgu-tcp-sndbuf-2`](https://github.com/JustAnotherPU/wireguard-go/tree/mgu-tcp-sndbuf-2) at `2a38e13930f2a8259fc04c9c402b6b76b99ae5a7` (upstream `b3bc704` + the send buffer cap and its tests) |
 | Go dependencies (gVisor and go-ini Apache-2.0, golang.org/x BSD-3-Clause, go-socks5 MIT, libcap/psx BSD-3-Clause, ...) and the Go runtime (BSD-3-Clause) | their own | full texts in `files/LICENSES.txt` of the package (`/var/opt/jap-wireproxy/current/LICENSES.txt`) |
-| `jap-runas` | GPL-3.0-or-later (`COPYING.jap-runas`) | [tools/jap-tailscale/runas](../jap-tailscale/runas) |
+| `jap-runas` | GPL-3.0-or-later (`COPYING.jap-runas`) | [runas](runas) |
 | `start.sh`, `setup.sh`, `resolve.js`, `check.sh`, the unit, the tests | MIT | this folder |
 
 WireGuard is a registered trademark of Jason A. Donenfeld. This package is an unofficial build, not affiliated
