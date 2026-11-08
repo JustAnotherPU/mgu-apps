@@ -209,8 +209,8 @@ The 08/11 rows are the package as the Store installs it (`CPUQuota=200%`, the ca
 In the morning session the iPhone that shared its 5G with the car was playing short videos (TikTok) the whole
 time. Both tunnels froze in bursts of 15 to 25 s where the phone's own traffic took the link, and wireproxy's
 longest gaps inside those bursts were longer (1.7 s and 2.3 s). Tailscale went direct in the first run and through
-a DERP relay (Amsterdam) in the other two, and the car's load average was 3 to 9. Those rows measure the phone,
-not the tunnels.
+a DERP relay (Amsterdam) in the other two, and the car's load average was 3 to 9. Those rows say more about the
+phone than about the tunnels.
 
 The afternoon rows repeat the test with the phone idle, same car, same place. In the first round the link was weak
 for both (5.6 to 6.6 Mbit/s down, under the stream's 7.3 Mbit/s), and both froze more. In the other runs wireproxy
@@ -218,8 +218,8 @@ froze once per 60 s run, 0.34 to 0.52 s, at 30 frames per second; Tailscale froz
 at 21.5 and 27.8 frames per second. wireproxy downloaded 1.6 to 3.2 times faster. The kernel dropped no UDP packet for
 either tunnel on 5G.
 
-The UDP receive buffer cap (`net.core.rmem_max`) matters on Wi-Fi. Both tunnels run as non-root users and ask for a
-7 MiB receive buffer, which the head unit's stock cap of 208 KiB cuts down. On the home Wi-Fi the kernel then dropped
+On Wi-Fi the UDP receive buffer cap (`net.core.rmem_max`) made a difference. Both tunnels run as non-root users and
+ask for a 7 MiB receive buffer, which the head unit's stock cap of 208 KiB cuts down. On the home Wi-Fi the kernel then dropped
 157 to 572 packets per 50 MB download for wireproxy, and 238 to 282 per stream for Tailscale. With the cap at 8 MiB
 it dropped none: wireproxy went from 137 to 124 Mbit/s (more CPU, 134 to 136 % of one core against 104 to 113 %,
 still no freeze), and Tailscale, restarted with the new cap, from 85 to 103 Mbit/s up to 116.5. The cap is a kernel
