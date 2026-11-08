@@ -193,10 +193,24 @@ BMW X5 G05, iDrive 7, camera streams from a home server through each tunnel (SOC
 | | Tailscale | 24.9 | 2.1 | 0.31 to 0.47 s | 1, 2, 1 | 32 |
 | 5G, after the patch, away sndbuf 64 KiB (05/11, 2) | wireproxy v1.1.3-mgu1 | 46.6, 49.5 | 4.5, 3.8 | **0.31 s, 0.44 s** | 1, 3 | 26 to 29 |
 | | Tailscale | 22.2, 19.9 | 7.1, 4.9 | 0.39 s, 0.47 s | 3, 4 | 32 |
+| 5G via the iPhone, this package as installed (08/11, 3; median (range) or each run) | jap-wireproxy v1.1.3-mgu2 | 37.9 (34.1 to 45.2) | 3.7 (2.5 to 3.7) | **1.68 s, 0.59 s, 2.34 s** | 15, 5, 14 | 23 to 26 |
+| | Tailscale | 7.9 (7.8 to 30.8) | 6.7 (4.1 to 8.5) | 0.49 s, 0.65 s, 0.92 s | 8, 15, 21 | 30 to 32 |
 
 Both tunnels froze often in the 05/11 Wi-Fi runs. For wireproxy the cause was its endpoint, the router's WAN
 address used from the router's own LAN, which `HOME_ENDPOINT` fixes; the 07/11 runs have no freeze on either. The 5G rows are two sessions an hour
 apart, not an A/B in one session: few runs, one car, one network.
+
+The 08/11 rows are the package as the Store installs it (`CPUQuota=200%`, the car's `standard.slice`, MTU 1280,
+64 KiB send buffer), alternated run by run with Tailscale in one session. Tailscale went direct in the first run and
+through a DERP relay (Amsterdam) in the other two. That session was worse for both tunnels than 05/11: the car's
+load average was 3 to 9 during the runs, and Tailscale froze more than on 05/11 too. wireproxy downloads 1.2 to 5.8
+times faster, uploads slower (3.7 against 6.7 Mbit/s), with the same round trip (69 against 74 ms p50) and slower
+connects (196 against 153 ms p50). Outside the freezes the stream is the same (gaps 31 against 33 ms p50, 116
+against 93 ms p95). On both tunnels the freezes come in bursts of 15 to 25 s where the 5G link slows down; the
+number of freezes is about the same (14 against 15, median), but inside those bursts wireproxy's longest gap is
+longer: 1.7 s and 2.3 s in two of three runs, against 0.9 s at most for Tailscale and 0.44 s for mgu1 on 05/11.
+The cause of the high load and of those longer gaps was not recorded. The download takes 68 to 76 % of one core,
+well under the 200 % quota, so the quota is not the limit.
 
 ## Build
 
