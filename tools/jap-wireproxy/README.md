@@ -120,6 +120,10 @@ those need.
 
 ## Tests
 
+This package has not yet been installed on a car through the Store. The bench below is the hand-installed
+wireproxy v1.1.3-mgu1, built from the same sources one commit earlier (before go-socks5 v0.1.3), with the same
+supervisor logic.
+
 Run on a computer, no car:
 
 ```sh
@@ -127,7 +131,8 @@ sh tools/jap-wireproxy/test/run.sh            # start.sh against fakes: 33 cases
 docker run --rm -v "$PWD:/t:ro" -w /t node:8-alpine sh tools/jap-wireproxy/test/run.sh   # the same, BMW's Node 8, busybox
 # the packaged binary end to end (after build.sh): a second wireproxy is the server
 mkdir -p /tmp/x && tar -xzf dist/jap-wireproxy@1.1.3.tgz -C /tmp/x
-docker run --rm --platform linux/amd64 -v /tmp/x/files:/x:ro -v "$PWD:/t:ro" node:22-alpine sh /t/tools/jap-wireproxy/test/e2e.sh /x
+docker run --rm -v /tmp/x/files:/x:ro -v "$PWD:/t:ro" node:22-alpine sh /t/tools/jap-wireproxy/test/e2e.sh /x
+# (an amd64 host; on an arm64 Mac the amd64 binary runs under the VM's emulation, as for the results below)
 ```
 
 Results on 2026-11-08:
@@ -135,7 +140,7 @@ Results on 2026-11-08:
 | Suite | Result |
 |---|---|
 | `test/run.sh` (macOS sh; busybox with Node 8.17 and Node 22.23) | 33 passed, 0 failed, on each |
-| `test/e2e.sh` (Node 22, amd64): HTTP through SOCKS5, WireGuard and a server peer; MTU 1280 and `WG_TCP_SNDBUF=65536` applied | 3 passed, 0 failed |
+| `test/e2e.sh` (Node 22 arm64 image, the amd64 binary emulated): HTTP through SOCKS5, WireGuard and a server peer; MTU 1280 and `WG_TCP_SNDBUF=65536` applied | 3 passed, 0 failed |
 | wireguard-go `go test ./...` at the pinned commit (including `TestTCPSendBuf` and `TestCreateNetTUNSendBuf`: unset = 128 KiB cap, `0` = gVisor's 1 MiB, a value = that value) | 8 packages ok: 100 tests and subtests passed, 1 skipped, 0 failed |
 | wireproxy `go vet ./... && go test ./...` at the pinned commit | 3 passed, 0 failed |
 
