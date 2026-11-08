@@ -14,13 +14,16 @@ const META = {
     jap_sysmon: { kind: 'app', title: 'iDrive Monitor', icon: 'jap_sysmon.png',
         description: require('../apps/jap_sysmon/app.json').description,
         requires: () => ({ 'mgu-render': '0.6.11', 'mgu-inputgate': '1.0.0' }) },
-    // the two tools are installed as another app's requirement (or on their own); optional: never offered as an
+    // the tools are installed as another app's requirement (or on their own); optional: never offered as an
     // update until installed
     'jap-node22': { kind: 'tool', title: 'Node.js 22', optional: true,
         description: "Node.js 22 LTS for the background services of Moonride and RideTube (BMW's apps keep the system Node 8)",
         requires: () => ({ 'mgu-deploy': '0.7.0' }) },
     'jap-tailscale': { kind: 'tool', title: 'Tailscale', optional: true,
         description: 'Tailscale in userspace networking with a SOCKS5 server on 127.0.0.1 (Moonride plays over 5G through it); incoming connections refused; you log in by scanning a QR code in Moonride',
+        requires: () => ({ 'mgu-deploy': '0.7.0' }) },
+    'jap-wireproxy': { kind: 'tool', title: 'WireGuard (wireproxy)', optional: true,
+        description: 'A WireGuard client to your own WireGuard server (no account, no relay), with a SOCKS5 server on 127.0.0.1; picks the endpoint, MTU and TCP send buffer for home Wi-Fi or 5G; does nothing until you write its configuration (README)',
         requires: () => ({ 'mgu-deploy': '0.7.0' }) },
 };
 const files = fs.readdirSync(dir).filter((f) => /^[a-z0-9_-]+@\d+\.\d+\.\d+\.tgz$/.test(f)).sort();
