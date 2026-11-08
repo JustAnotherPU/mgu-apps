@@ -71,4 +71,11 @@ for p in $(pgrep -f "$T/run/wireproxy.conf"); do
     tr '\0' '\n' < /proc/$p/environ | grep -qx 'WG_TCP_SNDBUF=65536' && ok=1
 done
 [ "${ok:-}" = 1 ] && echo "ok   the client wireproxy has WG_TCP_SNDBUF=65536 in its environment" || { echo "FAIL WG_TCP_SNDBUF"; exit 1; }
-echo "3 passed, 0 failed"
+# SOCKS5 UDP ASSOCIATE: the relay must be bound to the loopback (go-socks5 v0.1.3), not to every interface
+bnd=$(node -e 'const s = require("net").connect(1085, "127.0.0.1"); let st = 0;
+    s.on("connect", () => s.write(Buffer.from([5, 1, 0])));
+    s.on("data", (d) => { if (st++ === 0) return s.write(Buffer.from([5, 3, 0, 1, 0, 0, 0, 0, 0, 0]));
+        console.log(d[1] === 0 && d[3] === 1 ? Array.from(d.slice(4, 8)).join(".") + ":" + d.readUInt16BE(8) : "reply " + d[1]); process.exit(0); });
+    s.on("error", (e) => { console.log(e.message); process.exit(1); }); setTimeout(() => process.exit(1), 5000);') || true
+case $bnd in 127.0.0.1:[1-9]*) echo "ok   UDP ASSOCIATE relay bound to $bnd" ;; *) echo "FAIL UDP ASSOCIATE: $bnd"; exit 1 ;; esac
+echo "4 passed, 0 failed"

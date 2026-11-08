@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 [Unit]
-Description=jap-wireproxy: WireGuard in userspace to your own server, SOCKS5 on 127.0.0.1 for the head unit's programs
+Description=jap-wireproxy: wireproxy (WireGuard protocol) in userspace to your own server, SOCKS5 on 127.0.0.1 for the head unit's programs
 After=network.target mgu-uplink.service
 RequiresMountsFor=/var/opt
 
@@ -28,6 +28,10 @@ ProtectControlGroups=yes
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
 RestrictNamespaces=yes
 LockPersonality=yes
+# all root needs: setup.sh's chown and chmod of the folder handed to 3921, jap-runas's setgroups/setgid/setuid
+CapabilityBoundingSet=CAP_CHOWN CAP_FOWNER CAP_SETUID CAP_SETGID
+SystemCallArchitectures=native
+RestrictRealtime=yes
 
 [Install]
 WantedBy=multi-user.target

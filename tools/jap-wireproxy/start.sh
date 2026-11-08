@@ -8,7 +8,7 @@
 #   can switch the source of its replies mid-flow, and the head unit's firewall drops them), HOME_MTU, HOME_SNDBUF;
 # - elsewhere: ENDPOINT (a name is resolved by DNS over HTTPS: the head unit's own resolver answers nothing), checked
 #   again every RECHECK seconds for a dynamic address, AWAY_MTU, AWAY_SNDBUF.
-# WG_TCP_SNDBUF (wireproxy v1.1.3-mgu1) caps what one TCP connection queues toward the server: on a slow mobile
+# WG_TCP_SNDBUF (wireproxy v1.1.3-mgu2) caps what one TCP connection queues toward the server: on a slow mobile
 # uplink an upload no longer buries the other flows' ACKs and the handshakes (10-11 s freezes without it).
 # Without a valid configuration in $D it starts nothing and says why, once, then waits for one.
 set -u
@@ -54,6 +54,9 @@ load() {
     has=$(grep -c '@ENDPOINT@' "$D/wireproxy.conf")
     [ -n "$ENDPOINT" ] && [ "$has" -eq 0 ] && { why="idle: refused: ENDPOINT is set but wireproxy.conf has no 'Endpoint = @ENDPOINT@'"; return; }
     [ -z "$ENDPOINT" ] && [ "$has" -gt 0 ] && { why="idle: refused: wireproxy.conf has @ENDPOINT@ but settings has no ENDPOINT"; return; }
+    # awk and wireproxy's ini parser may read other bytes differently (UTF-8, CR, NUL): only printable ASCII and tabs
+    LC_ALL=C grep -q "$(printf '[^ -~\t]')" "$D/wireproxy.conf" &&
+        { why="idle: refused: wireproxy.conf has a byte that is not printable ASCII or a tab (Windows line ends too)"; return; }
     # the proxies must listen on the loopback only, and nothing may listen for the tunnel's peers
     why=$(awk '
         function no(why) { print "idle: refused: " why " (line " NR " of wireproxy.conf)"; exit }
@@ -101,6 +104,16 @@ run() {     # (re)start wireproxy on want's line
         /^[ \t]*\[/ { print; s = tolower($0); gsub(/[][ \t]/, "", s); if (s == "interface") print "MTU = " mtu; next }
         s == "interface" { k = $0; sub(/[=:].*/, "", k); gsub(/[ \t]/, "", k); if (tolower(k) == "mtu") next }
         { if (ep != "-") gsub(/@ENDPOINT@/, ep); print }' "$D/wireproxy.conf" > "$CONF"
+    # a port someone else holds would make wireproxy exit, and systemd restart it every 30 s: wait for it instead
+    while read -r a; do
+        [ -n "$a" ] || continue
+        h=${a%:*} h=${h#[} h=${h%]}
+        "$NODE" -e 'const s = require("net").createServer(); s.on("error", (e) => process.exit(e.code === "EADDRINUSE" ? 1 : 0));
+            s.listen(+process.argv[1], process.argv[2], () => s.close());' "${a##*:}" "$h" ||
+            { say "idle: port ${a##*:} is in use ($a in wireproxy.conf); waiting for it"; return 2; }
+    done <<EOF
+$(awk 'tolower($0) ~ /^[ \t]*bindaddress[ \t]*[=:]/ { sub(/^[^=:]*[=:][ \t]*/, ""); sub(/[ \t]+$/, ""); print }' "$CONF")
+EOF
     if ! out=$("$BIN" -c "$CONF" -n 2>&1); then
         say "idle: refused by wireproxy's configtest: $(printf '%s' "$out" | tail -1)"; return 1
     fi
@@ -139,7 +152,7 @@ while :; do
             if [ -z "$w" ]; then
                 [ -n "$cur" ] || say "idle: offline, or the endpoint does not resolve"
             elif [ "$w" != "$cur" ]; then
-                run "$w" || why=configtest
+                run "$w"; [ $? -eq 1 ] && why=configtest   # 2: port in use, try again in 30 s
             else
                 poke
             fi
