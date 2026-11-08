@@ -195,24 +195,40 @@ BMW X5 G05, iDrive 7, camera streams from a home server through each tunnel (SOC
 | | Tailscale | 22.2, 19.9 | 7.1, 4.9 | 0.39 s, 0.47 s | 3, 4 | 32 |
 | 5G via the iPhone, this package as installed (08/11, 3; median (range) or each run) | jap-wireproxy v1.1.3-mgu2 | 37.9 (34.1 to 45.2) | 3.7 (2.5 to 3.7) | **1.68 s, 0.59 s, 2.34 s** | 15, 5, 14 | 23 to 26 |
 | | Tailscale | 7.9 (7.8 to 30.8) | 6.7 (4.1 to 8.5) | 0.49 s, 0.65 s, 0.92 s | 8, 15, 21 | 30 to 32 |
+| 5G via the iPhone, phone idle (08/11 afternoon, 3; each run), UDP receive buffer cap 208 KiB | jap-wireproxy v1.1.3-mgu2 | 6.6, 26.0, 31.2 | 3.3, 3.2, 3.4 | **0.82 s, 0.34 s, 0.45 s** | 10, 1, 1 | 25 to 27 |
+| same, cap 8 MiB | jap-wireproxy v1.1.3-mgu2 | 14.7, 22.2, 27.3 | 3.7, 1.2, 3.4 | **0.46 s, 0.52 s, 0.34 s** | 2, 1, 1 | 26 to 29 |
+| | Tailscale | 5.6, 9.9, 14.1 | 2.2, 3.5, 4.0 | 1.02 s, 0.76 s, 0.86 s | 28, 26, 14 | 28 to 29 |
 
 Both tunnels froze often in the 05/11 Wi-Fi runs. For wireproxy the cause was its endpoint, the router's WAN
 address used from the router's own LAN, which `HOME_ENDPOINT` fixes; the 07/11 runs have no freeze on either. The 5G rows are two sessions an hour
 apart, not an A/B in one session: few runs, one car, one network.
 
 The 08/11 rows are the package as the Store installs it (`CPUQuota=200%`, the car's `standard.slice`, MTU 1280,
-64 KiB send buffer), alternated run by run with Tailscale in one session. Tailscale went direct in the first run and
-through a DERP relay (Amsterdam) in the other two. That session was worse for both tunnels than 05/11: the car's
-load average was 3 to 9 during the runs, and Tailscale froze more than on 05/11 too. wireproxy downloads 1.2 to 5.8
-times faster, uploads slower (3.7 against 6.7 Mbit/s), with the same round trip (69 against 74 ms p50) and slower
-connects (196 against 153 ms p50). Outside the freezes the stream is the same (gaps 31 against 33 ms p50, 116
-against 93 ms p95). On both tunnels the freezes come in bursts of 15 to 25 s where the 5G link slows down; the
-number of freezes is about the same (14 against 15, median), but inside those bursts wireproxy's longest gap is
-longer: 1.7 s and 2.3 s in two of three runs, against 0.9 s at most for Tailscale and 0.44 s for mgu1 on 05/11.
-The iPhone that shared its 5G with the car was also playing short videos (TikTok) during the runs, which explains
-the bursts on both tunnels; it does not show why wireproxy's gaps inside them are longer. The car's high load was
-not explained. The download takes 68 to 76 % of one core,
-well under the 200 % quota, so the quota is not the limit.
+64 KiB send buffer), alternated run by run with Tailscale in one session.
+
+In the morning session the iPhone that shared its 5G with the car was playing short videos (TikTok) the whole
+time. Both tunnels froze in bursts of 15 to 25 s where the phone's own traffic took the link, and wireproxy's
+longest gaps inside those bursts were longer (1.7 s and 2.3 s). Tailscale went direct in the first run and through
+a DERP relay (Amsterdam) in the other two, and the car's load average was 3 to 9. Those rows measure the phone,
+not the tunnels.
+
+The afternoon rows repeat the test with the phone idle, same car, same place. In the first round the link was weak
+for both (5.6 to 6.6 Mbit/s down, under the stream's 7.3 Mbit/s), and both froze more. In the other runs wireproxy
+froze once per 60 s run, 0.34 to 0.52 s, at 30 frames per second; Tailscale froze 26 and 14 times, up to 0.86 s,
+at 21.5 and 27.8 frames per second. wireproxy downloaded 1.6 to 3.2 times faster. The kernel dropped no UDP packet for
+either tunnel on 5G.
+
+The UDP receive buffer cap (`net.core.rmem_max`) matters on Wi-Fi. Both tunnels run as non-root users and ask for a
+7 MiB receive buffer, which the head unit's stock cap of 208 KiB cuts down. On the home Wi-Fi the kernel then dropped
+157 to 572 packets per 50 MB download for wireproxy, and 238 to 282 per stream for Tailscale. With the cap at 8 MiB
+it dropped none: wireproxy went from 137 to 124 Mbit/s (more CPU, 134 to 136 % of one core against 104 to 113 %,
+still no freeze), and Tailscale, restarted with the new cap, from 85 to 103 Mbit/s up to 116.5. The cap is a kernel
+setting this package does not change (its unit has `ProtectKernelTunables=yes`); the test car has it in
+`/etc/sysctl.d/90-jap-udp-rmem.conf`:
+
+```
+net.core.rmem_max = 8388608
+```
 
 ## Build
 
