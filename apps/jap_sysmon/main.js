@@ -18,6 +18,8 @@ const mgu = require('./kit/mgu');
 const G = require('./kit/gauges');
 const { withAlpha } = require('./kit/canvas');
 const Car = require('./kit/car');
+const { t, getLanguage } = require('./kit/i18n');
+const displayText = text => getLanguage() === 'zh-CN' ? t(text).replace(/\bof\b/g, '/') : text;
 
 const W = 1600, H = 520;
 const CG = '/sys/fs/cgroup/memory/oap.slice/nodejs.slice/';
@@ -86,7 +88,7 @@ mgu.run({
             if (car.data().stage === 'R') { log.info('alert held back (reverse): ' + text); return; }
             log.warn('alert: ' + text);
             // as x_call: open the pop-up, then set its text (text sent before the open is refused, INVALID_MODELID)
-            ui.open('SYS_POP').then(() => ui.text('SYS_POP_TEXT', text));
+            ui.open('SYS_POP').then(() => ui.text('SYS_POP_TEXT', displayText(text)));
             clearTimeout(popTimer);
             popTimer = setTimeout(closePop, POP_MS);
         }
@@ -111,7 +113,7 @@ mgu.run({
         function row(cv, t, x, y, label, value, unit, frac, warn) {
             cv.text(label, x, y, 22, t.dim, { font: 'bold', spacing: 1.5 });
             const w = cv.text(value, x, y + 62, 60, warn ? t.accent2 : t.text, { font: 'num' });
-            cv.text(unit, x + w + 8, y + 62, 24, t.dim);
+            cv.text(displayText(unit), x + w + 8, y + 62, 24, t.dim);
             if (frac !== null && !isNaN(frac)) {
                 cv.fillRect(x, y + 84, 440, 8, withAlpha(t.tick, 0.3));
                 cv.fillRect(x, y + 84, Math.max(0, Math.min(1, frac)) * 440, 8, warn ? t.accent2 : t.accent);
@@ -131,7 +133,7 @@ mgu.run({
             row(cv, t, 580, 300, 'SWAP USED', n(s.swap), 'MB', null, false);
             const when = lastAlert ? new Date(lastAlert.at).toISOString().slice(11, 16) + ' UTC  ' + lastAlert.text.replace(/^iDrive short of resources: /, '') : 'none since start';
             cv.text('LAST ALERT', 1080, 300, 22, t.dim, { font: 'bold', spacing: 1.5 });
-            cv.text(when, 1080, 340, 22, lastAlert ? t.text : t.dim, { maxWidth: 480 });
+            cv.text(displayText(when), 1080, 340, 22, lastAlert ? t.text : t.dim, { maxWidth: 480 });
             G.frame(cv, t, ['iDrive Monitor'], 0);
             await ui.image('MAIN_GFX', cv);
         }

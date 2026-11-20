@@ -695,7 +695,7 @@ async function runInner(impl) {
         const map = mapped[uuid] ? Promise.resolve() : ui.rhmi.mapEntryState(uuid, mainState).then(() => { mapped[uuid] = true; });
         opening = map
             .then(() => (mainState && mainState.updateResources ? mainState.updateResources().catch(() => {}) : null))
-            .then(() => ui.rhmi.openEntryState(uuid))
+            .then(() => require('./open-entry')(ui.rhmi, uuid, mainName))
             .then(() => ui._setVisible(mainName, true))
             .catch((e) => {
                 if ((tries || 1) > 1 && /INVALID/.test(String(e && e.message ? e.message : e) + ' ' + JSON.stringify(e || {}))) again = true;

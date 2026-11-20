@@ -6,20 +6,16 @@ Output: kit/runtime/fonts/<family>.json  =  {"sizes": [{size, ascent, descent,
 atlasW, atlasH, alpha: base64(zlib(8-bit alpha)), glyphs: {code: [x,y,w,h,ox,oy,adv]}}]}
 ox/oy = glyph bitmap offset from (pen x, baseline y).
 
-Needs Pillow and the Ubuntu font family (free): Ubuntu 24.04's fonts-ubuntu, or FONTDIR=<dir> with
-Ubuntu[wdth,wght].ttf. Without them on this machine, the same environment in Docker:
-  docker run --rm -v "$PWD":/w -w /w ubuntu:24.04 sh -c 'apt-get update -qq && apt-get install -y -qq fonts-ubuntu python3-pil >/dev/null && python3 kit/tools/bake_fonts.py'
+Needs Pillow (custom-apps/.venv). Free fonts only (Ubuntu font family).
 """
 import base64, json, os, sys, zlib
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', 'runtime', 'fonts')
-FONTDIR = os.environ.get('FONTDIR', '/usr/share/fonts/truetype/ubuntu')
+FONTDIR = '/usr/share/fonts/truetype/ubuntu'
 
-# ASCII, Latin-1 Supplement and Latin Extended-A (é, ß, ł, ...), the common typographic punctuation
-# (‘ ’ “ ” – — … •), and the signs the gauges use. A glyph not here is dropped by the drawing code.
-TEXT = ''.join(chr(c) for c in range(32, 127)) + ''.join(chr(c) for c in range(0xa0, 0x180)) + '‘’‚“”„‹›–—…•€│↑↓→←✓✕'
+TEXT = ''.join(chr(c) for c in range(32, 127)) + '°μ│·–—…×±²³€↑↓→←✓✕'
 DIGITS = '0123456789.,:-+%°/ ' + 'kmhKMHrpmbarpsiVNCFgsxµRPDSWLOT'
 GEAR = '0123456789NRPDSM-'
 
